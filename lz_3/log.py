@@ -1,39 +1,40 @@
-# Импорт используемых библиотек
-import os
 import pandas as pd
-from datetime import date, datetime
+import os
+import socket
+import getpass
+from datetime import datetime
+from functools import wraps
 
-
-# Ф-ция логгирования
-def log(func):
-    def wrapper(*args, **kwargs):
-        original_result = func(*args, **kwargs)
-
-        username = os.getlogin()
-        func_name = func.__name__
-        formatted_date = date.today().strftime("%d-%m-%Y")
-        formatted_time = datetime.now().strftime("%H:%M:%S")
-        
-        if os.path.exists("logs.csv"):
-            file_df = pd.read_csv('logs.csv')
-            new_id = len(file_df)
-            new_row = pd.DataFrame({
-                'id': [new_id],
-                'pc_username': [username],
-                'function_name': [func_name],
-                'Date in date.month.year': [formatted_date],
-                'Time': [formatted_time]
-            })
-            new_row.to_csv('logs.csv', mode='a', header=False, index=False)
-        else:
-            df = pd.DataFrame({
-                'id': [0],
-                'pc_username': [username],
-                'function_name': [func_name],
-                'Date in date.month.year': [formatted_date],
-                'Time': [formatted_time]
-            })
-            df.to_csv('logs.csv', index=False)
-
-        return original_result
-    return wrapper
+def log_decorator(log_file='logs.csv'):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            log_id = 1
+            pc_name = socket.gethostname()
+            username = getpass.getuser()
+            function_name = func.__name__
+            now = datetime.now()
+            date_str = now.strftime("%d.%m.%Y")
+            time_str = now.strftime("%H:%M:%S")
+            
+            log_entry = {
+                "id": log_id,
+                "pc": pc_name,
+                "username": username,
+                "function name": function_name,
+                "Date": date_str,
+                "Time": time_str
+            }
+            
+            if os.path.exists(log_file):
+                df = pd.read_csv(log_file)
+                log_entry["id"] = df.shape[0] + 1 
+                df = pd.concat([df, pd.DataFrame([log_entry])], ignore_index=True)
+            else:
+                df = pd.DataFrame([log_entry])
+            
+            df.to_csv(log_file, index=False)
+            
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
