@@ -1,3 +1,3 @@
-id,pc,username,function name,Date,Time
-1,WIN-C2KLK3CSEHN,Asus,load_data,27.08.2025,11:00:49
-2,WIN-C2KLK3CSEHN,Asus,plot_pie_chart,27.08.2025,11:00:49
+id,pc_username,function_name,Date in date.month.year,Time
+0,User,img,26-08-2025,11:42:12
+1,User,img,26-08-2025,11:45:56
